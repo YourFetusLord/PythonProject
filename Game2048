@@ -1,0 +1,105 @@
+import random
+import numpy as np
+
+class Game2048:
+    def __init__(self):
+        self.grid = np.zeros((4, 4), dtype=int)
+        self.score = 0
+        self.add_new_tile()
+        self.add_new_tile()
+
+    def add_new_tile(self):
+        empty_cells = [(i, j) for i in range(4) for j in range(4) if self.grid[i, j] == 0]
+        if empty_cells:
+            i, j = random.choice(empty_cells)
+            self.grid[i, j] = 2 if random.random() < 0.9 else 4
+
+    def slide_left(self):
+        new_grid = np.zeros_like(self.grid)
+        for i in range(4):
+            pos = 0
+            for j in range(4):
+                if self.grid[i, j] != 0:
+                    new_grid[i, pos] = self.grid[i, j]
+                    pos += 1
+        return new_grid
+
+    def merge_left(self, grid):
+        for i in range(4):
+            for j in range(3):
+                if grid[i, j] == grid[i, j + 1] and grid[i, j] != 0:
+                    grid[i, j] *= 2
+                    grid[i, j + 1] = 0
+                    self.score += grid[i, j]
+        return grid
+
+    def move_left(self):
+        self.grid = self.slide_left()
+        self.grid = self.merge_left(self.grid)
+        self.grid = self.slide_left()
+        self.add_new_tile()
+
+    def rotate_grid(self):
+        self.grid = np.rot90(self.grid)
+
+    def move_right(self):
+        self.rotate_grid()
+        self.rotate_grid()
+        self.move_left()
+        self.rotate_grid()
+        self.rotate_grid()
+
+    def move_up(self):
+        self.rotate_grid()
+        self.rotate_grid()
+        self.rotate_grid()
+        self.move_left()
+        self.rotate_grid()
+
+    def move_down(self):
+        self.rotate_grid()
+        self.move_left()
+        self.rotate_grid()
+        self.rotate_grid()
+        self.rotate_grid()
+
+    def can_move(self):
+        for i in range(4):
+            for j in range(4):
+                if self.grid[i, j] == 0:
+                    return True
+                if j < 3 and self.grid[i, j] == self.grid[i, j + 1]:
+                    return True
+                if i < 3 and self.grid[i, j] == self.grid[i + 1, j]:
+                    return True
+        return False
+
+    def is_game_over(self):
+        if not self.can_move():
+            print("Game Over!")
+            return True
+        return False
+
+    def display(self):
+        print(self.grid)
+        print(f"Score: {self.score}")
+
+def main():
+    game = Game2048()
+    game.display()
+    while not game.is_game_over():
+        move = input("Enter move (w/a/s/d): ")
+        if move == 'w':
+            game.move_up()
+        elif move == 'a':
+            game.move_left()
+        elif move == 's':
+            game.move_down()
+        elif move == 'd':
+            game.move_right()
+        else:
+            print("Invalid move! Use w/a/s/d.")
+        game.display()
+
+if __name__ == "__main__":
+    main()
